@@ -245,6 +245,10 @@ void CursorReadouts::setTimeCursor1LabelText(const QString &text){
     ui->cursorT1label->setText(text);
 }
 
+void CursorReadouts::setTimeDeltaLabelText(const QString &text){
+    ui->timeDeltaLabel->setText(text);
+}
+
 QString CursorReadouts::timeCursor1LabelText(){
     return ui->cursorT1label->text();
 }
