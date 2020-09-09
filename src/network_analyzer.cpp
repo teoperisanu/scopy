@@ -415,14 +415,40 @@ NetworkAnalyzer::NetworkAnalyzer(struct iio_context *ctx, Filter *filt,
 	connect(ui->cbLineThickness,SIGNAL(currentIndexChanged(int)),ui->xygraph,
 		SLOT(setThickness(int)));
 
-	d_bottomHandlesArea = new HorizHandlesArea(this);
-	d_bottomHandlesArea->setMinimumHeight(50);
-
 	ui->gridLayout_plots->addWidget(bufferPreviewer, 0, 0, 1, 1);
 	ui->gridLayout_plots->addWidget(ui->statusWidget, 1, 0, 1, 1);
 	ui->gridLayout_plots->addWidget(&m_dBgraph, 2, 0, 1, 1);
 	ui->gridLayout_plots->addWidget(&m_phaseGraph, 3, 0, 1, 1);
-	ui->gridLayout_plots->addWidget(d_bottomHandlesArea, 4, 0, 1, 1);
+    ui->gridLayout_plots->addWidget(m_dBgraph.bottomHandlesArea(), 4, 0, 1, 1);
+
+    m_phaseGraph.setVertCursorsHandleEnabled(false);
+
+
+    connect(m_dBgraph.vBar1(), static_cast<void (HorizDebugSymbol::*)(double)>(&HorizDebugSymbol::positionChanged),
+            [=](double x)
+    {
+        m_phaseGraph.vBar1()->setPosition(x);
+    });
+
+    connect(m_dBgraph.vBar2(), static_cast<void (HorizDebugSymbol::*)(double)>(&HorizDebugSymbol::positionChanged),
+            [=](double x)
+    {
+        m_phaseGraph.vBar2()->setPosition(x);
+    });
+
+    //The inverse connection is neccesary for chnage of the boundaries for sweep
+    connect(m_phaseGraph.vBar1(), static_cast<void (HorizDebugSymbol::*)(double)>(&HorizDebugSymbol::positionChanged),
+            [=](double x)
+    {
+        m_dBgraph.vBar1()->setPosition(x);
+    });
+
+    connect(m_phaseGraph.vBar2(), static_cast<void (HorizDebugSymbol::*)(double)>(&HorizDebugSymbol::positionChanged),
+            [=](double x)
+    {
+        m_dBgraph.vBar2()->setPosition(x);
+    });
+
 
 	ui->currentFrequencyLabel->setVisible(false);
 	ui->currentSampleLabel->setVisible(false);
@@ -432,16 +458,9 @@ NetworkAnalyzer::NetworkAnalyzer(struct iio_context *ctx, Filter *filt,
 				QPixmap(":/icons/time_trigger_handle.svg"),
 				QPixmap(":/icons/time_trigger_left.svg"),
 				QPixmap(":/icons/time_trigger_right.svg"),
-				d_bottomHandlesArea);
+                m_dBgraph.bottomHandlesArea());
 	d_frequencyHandle->setPen(QPen(QColor(74, 100, 255), 2, Qt::SolidLine));
 	d_frequencyHandle->setVisible(true);
-
-	d_hCursorHandle1 = new PlotLineHandleH(
-		QPixmap(":/icons/h_cursor_handle.svg"),
-		d_bottomHandlesArea);
-	d_hCursorHandle2 = new PlotLineHandleH(
-		QPixmap(":/icons/h_cursor_handle.svg"),
-		d_bottomHandlesArea);
 
 	ui->nicholsgraph->enableFrequencyBar(false);
 
@@ -489,26 +508,6 @@ NetworkAnalyzer::NetworkAnalyzer(struct iio_context *ctx, Filter *filt,
 
 	connect(&m_dBgraph, &dBgraph::frequencySelected,
 		bufferPreviewer, &NetworkAnalyzerBufferViewer::selectBuffers);
-
-	QPen cursorsLinePen = QPen(QColor(155,155,155),1,Qt::DashLine);
-	d_hCursorHandle1->setPen(cursorsLinePen);
-	d_hCursorHandle2->setPen(cursorsLinePen);
-	d_hCursorHandle1->setVisible(false);
-	d_hCursorHandle2->setVisible(false);
-
-	connect(&m_dBgraph,SIGNAL(VBar1PixelPosChanged(int)),
-		SLOT(onVbar1PixelPosChanged(int)));
-	connect(&m_dBgraph,SIGNAL(VBar2PixelPosChanged(int)),
-		SLOT(onVbar2PixelPosChanged(int)));
-
-	connect(d_hCursorHandle1, SIGNAL(positionChanged(int)),&m_dBgraph,
-		SLOT(onCursor1PositionChanged(int)));
-	connect(d_hCursorHandle2, SIGNAL(positionChanged(int)),&m_dBgraph,
-		SLOT(onCursor2PositionChanged(int)));
-	connect(d_hCursorHandle1, SIGNAL(positionChanged(int)),&m_phaseGraph,
-		SLOT(onCursor1PositionChanged(int)));
-	connect(d_hCursorHandle2, SIGNAL(positionChanged(int)),&m_phaseGraph,
-		SLOT(onCursor2PositionChanged(int)));
 
 	startStopRange->setStopValue((double) max_samplerate / 3.0 - 1.0);
 
@@ -835,18 +834,16 @@ void NetworkAnalyzer::rightMenuFinished(bool opened)
 
 void NetworkAnalyzer::showEvent(QShowEvent *event)
 {
-	d_bottomHandlesArea->setLeftPadding(m_dBgraph.axisWidget(QwtAxisId(
-			QwtPlot::yLeft, 0))->width()
-					    + ui->gridLayout_plots->margin()
-					    + ui->widgetPlotContainer->layout()->margin() + 1);
-	int rightPadding = 0;
-	rightPadding = rightPadding + m_dBgraph.width()
-		       - m_dBgraph.axisWidget(QwtPlot::yLeft)->width() - m_dBgraph.canvas()->width()
-		       - ui->widgetPlotContainer->layout()->margin() ;
-	d_bottomHandlesArea->setRightPadding(rightPadding);
-	d_hCursorHandle1->setPosition(d_hCursorHandle1->pos().x());
-	d_hCursorHandle2->setPosition(d_hCursorHandle2->pos().x());
-	Tool::showEvent(event);
+    m_dBgraph.bottomHandlesArea()->setLeftPadding(m_dBgraph.axisWidget(QwtAxisId(
+            QwtPlot::yLeft, 0))->width()
+                        + ui->gridLayout_plots->margin()
+                        + ui->widgetPlotContainer->layout()->margin() + 1);
+    int rightPadding = 0;
+    rightPadding = rightPadding + m_dBgraph.width()
+               - m_dBgraph.axisWidget(QwtPlot::yLeft)->width() - m_dBgraph.canvas()->width()
+               - ui->widgetPlotContainer->layout()->margin() ;
+    m_dBgraph.bottomHandlesArea()->setRightPadding(rightPadding);
+    Tool::showEvent(event);
 }
 
 void NetworkAnalyzer::on_btnExport_clicked()
@@ -1723,16 +1720,6 @@ void NetworkAnalyzer::configHwForNetworkAnalyzing()
 	}
 }
 
-void NetworkAnalyzer::onVbar1PixelPosChanged(int pos)
-{
-	d_hCursorHandle1->setPositionSilenty(pos);
-}
-
-void NetworkAnalyzer::onVbar2PixelPosChanged(int pos)
-{
-	d_hCursorHandle2->setPositionSilenty(pos);
-}
-
 void NetworkAnalyzer::toggleCursors(bool en)
 {
 	if (!en) {
@@ -1741,10 +1728,8 @@ void NetworkAnalyzer::toggleCursors(bool en)
 
 	if (d_cursorsEnabled != en) {
 		d_cursorsEnabled = en;
-		m_dBgraph.toggleCursors(en);
-		m_phaseGraph.toggleCursors(en);
-		d_hCursorHandle1->setVisible(en);
-		d_hCursorHandle2->setVisible(en);
+        m_dBgraph.toggleCursors(en);
+        m_phaseGraph.toggleCursors(en);
 		ui->btnCursors->setEnabled(en);
 	}
 

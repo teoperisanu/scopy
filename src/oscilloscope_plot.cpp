@@ -387,7 +387,7 @@ CapturePlot::CapturePlot(QWidget *parent,
 	rightGateRect.setLeft(d_gateBar2->plotCoord().x());
 	rightGateRect.setRight(axisScaleDiv(xBottom).upperBound());
 	rightGate->setRect(rightGateRect);
-	rightGate->setBrush(gateBrush);
+    rightGate->setBrush(gateBrush);
 
 }
 
@@ -442,6 +442,7 @@ void CapturePlot::enableTimeTrigger(bool enable)
 	d_timeTriggerBar->setVisible(enable);
 	d_timeTriggerHandle->setVisible(enable);
 }
+
 
 void CapturePlot::onVCursor1Moved(double value) {
     QString text;
@@ -521,6 +522,7 @@ void CapturePlot::onHCursor1Moved(double value) {
 
     Q_EMIT cursorReadoutsChanged(d_cursorReadoutsText);
 }
+
 void CapturePlot::onHCursor2Moved(double value) {
 
     QString text;

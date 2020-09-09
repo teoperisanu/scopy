@@ -29,7 +29,6 @@
 #include "symbol_controller.h"
 #include "plot_line_handle.h"
 #include "cursor_readouts.h"
-#include "plotpickerwrapper.h"
 #include "DisplayPlot.h"
 
 namespace adiscope {
@@ -85,9 +84,6 @@ public:
 	QString xTitle() const;
 	QString yTitle() const;
 
-	void toggleCursors(bool);
-	CustomPlotPositionButton::ReadoutsPosition getCursorReadoutCurrentPosition();
-
 	QString cursorIntersection(qreal text);
 	QVector<double> getXAxisData();
 	QVector<double> getYAxisData();
@@ -100,8 +96,6 @@ public:
 
     void replot();
 Q_SIGNALS:
-	void VBar1PixelPosChanged(int);
-	void VBar2PixelPosChanged(int);
 
 	void resetZoom();
 	void frequencySelected(double);
@@ -130,18 +124,6 @@ public Q_SLOTS:
 	void useDeltaLabel(bool use_delta);
 	void sweepDone();
 
-	void onVbar1PixelPosChanged(int pos);
-	void onVbar2PixelPosChanged(int pos);
-
-	void onCursor1PositionChanged(int pos);
-	void onCursor2PositionChanged(int pos);
-
-	void onCursor1Moved(int);
-	void onCursor2Moved(int);
-
-	void setCursorReadoutsTransparency(int value);
-	void moveCursorReadouts(CustomPlotPositionButton::ReadoutsPosition position);
-
 	void scaleDivChanged();
 	void mousePressEvent(QMouseEvent *event);
 	void onResetZoom();
@@ -153,15 +135,15 @@ public Q_SLOTS:
 	void removeReferenceWaveform();
 	bool addReferenceWaveformFromPlot();
 
-
+private Q_SLOTS:
+    void onVCursor1Moved(double);
+    void onVCursor2Moved(double);
 protected Q_SLOTS:
 	void showEvent(QShowEvent *event);
 
 private:
 	QwtPlotCurve curve;
 	QwtPlotCurve reference;
-	QwtPlotMarker *markerIntersection1;
-	QwtPlotMarker *markerIntersection2;
 	unsigned int numSamples;
 	double xmin, xmax, ymin, ymax;
 	QColor color;
@@ -170,25 +152,17 @@ private:
 	bool delta_label;
 	bool d_plotBarEnabled;
 
-	bool d_cursorsEnabled;
-	bool d_cursorsCentered;
 	OscScaleDraw *draw_x, *draw_y;
 	PrefixFormatter *formatter;
-	OscScaleZoomer *zoomer;
+    OscScaleZoomer *zoomer;
 
 	QVector<double> xdata, ydata;
 	unsigned int d_plotPosition;
 
-	SymbolController *d_symbolCtrl;
-	VertBar *d_vBar1;
-	VertBar *d_vBar2;
 	VertBar *d_plotBar;
 	VertBar *d_frequencyBar;
 
-	PlotPickerWrapper *picker;
-
-	CursorReadouts *d_cursorReadouts;
-	void setupCursors();
+    void setupVerticalBars();
 	void setupReadouts();
 };
 }

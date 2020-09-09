@@ -569,6 +569,7 @@ DisplayPlot::DisplayPlot(int nplots, QWidget* parent,
 	  this, SLOT(onPickerPointSelected6(const QPointF &)));
 #endif
 
+  // aici comenteaza
   // Configure horizontal axis
   bottomHorizAxisInit();
 
@@ -656,8 +657,10 @@ DisplayPlot::DisplayPlot(int nplots, QWidget* parent,
              QSize(5, 5)));
 
   d_selected_channel = -1;
+
   setupCursors();
   setupReadouts();
+
 }
 
 DisplayPlot::~DisplayPlot()
@@ -682,10 +685,8 @@ DisplayPlot::~DisplayPlot()
     }
 
     delete d_grid;
-
     delete markerIntersection1;
     delete markerIntersection2;
-    //delete horizAxis
     delete horizAxis;
 }
 
@@ -708,6 +709,8 @@ void DisplayPlot::setupCursors() {
     d_hCursorHandle2 = new PlotLineHandleH(
                 QPixmap(":/icons/h_cursor_handle.svg"),
                 d_bottomHandlesArea);
+
+    d_vertCursorsHandleEnabled = true;
 
     d_symbolCtrl->attachSymbol(d_vBar1);
     d_symbolCtrl->attachSymbol(d_vBar2);
@@ -735,53 +738,18 @@ void DisplayPlot::setupCursors() {
     d_hCursorHandle1->hide();
     d_hCursorHandle2->hide();
 
+    vertCursorsLocked = false;
+    horizCursorsLocked = false;
+
     /* When a handle position changes the bar follows */
-    connect(d_vCursorHandle1, &PlotLineHandleV::positionChanged,
-        [=](int value) {
-        if (vertCursorsLocked) {
-            int position2 = value - (pixelPosHandleVert1 - pixelPosHandleVert2);
-            pixelPosHandleVert2 = position2;
-            d_hBar2->setPixelPosition(position2);
-        }
-        pixelPosHandleVert1 = value;
-        d_hBar1->setPixelPosition(value);
-    });
-    connect(d_vCursorHandle2, &PlotLineHandleV::positionChanged,
-        [=](int value) {
-        if (vertCursorsLocked) {
-            int position1 = value + (pixelPosHandleVert1 - pixelPosHandleVert2);
-            pixelPosHandleVert1 = position1;
-            d_hBar1->setPixelPosition(position1);
-        }
-        pixelPosHandleVert2 = value;
-        d_hBar2->setPixelPosition(value);
-    });
-
-    connect(d_hCursorHandle1, &PlotLineHandleH::positionChanged,
-        [=](int value) {
-        if (horizCursorsLocked) {
-            int position2 = value - (pixelPosHandleHoriz1 - pixelPosHandleHoriz2);
-            pixelPosHandleHoriz2 = position2;
-            d_vBar2->setPixelPosition(position2);
-        }
-        pixelPosHandleHoriz1 = value;
-        d_vBar1->setPixelPosition(value);
-    });
-    connect(d_hCursorHandle2, &PlotLineHandleH::positionChanged,
-        [=](int value) {
-        if (horizCursorsLocked) {
-            int position1 = value + (pixelPosHandleHoriz1 - pixelPosHandleHoriz2);
-            pixelPosHandleHoriz1 = position1;
-            d_vBar1->setPixelPosition(position1);
-        }
-        pixelPosHandleHoriz2 = value;
-        d_vBar2->setPixelPosition(value);
-    });
-
-    d_hBar1->setPosition(0);
-    d_hBar2->setPosition(0);
-    d_vBar1->setPosition(0);
-    d_vBar2->setPosition(0);
+    connect(d_vCursorHandle1, SIGNAL(positionChanged(int)),
+        SLOT(onVertCursorHandle1Changed(int)));
+    connect(d_vCursorHandle2, SIGNAL(positionChanged(int)),
+        SLOT(onVertCursorHandle2Changed(int)));
+    connect(d_hCursorHandle1, SIGNAL(positionChanged(int)),
+        SLOT(onHorizCursorHandle1Changed(int)));
+    connect(d_hCursorHandle2, SIGNAL(positionChanged(int)),
+        SLOT(onHorizCursorHandle2Changed(int)));
 
     /* When bar position changes due to plot resizes update the handle */
     connect(d_hBar1, SIGNAL(pixelPositionChanged(int)),
@@ -795,17 +763,15 @@ void DisplayPlot::setupCursors() {
 }
 
 void DisplayPlot::setupReadouts() {
+    d_cursorReadoutsVisible = false;
 
     d_cursorReadouts = new CursorReadouts(this);
+    d_cursorReadouts->setAxis(QwtPlot::xTop,QwtPlot::yLeft);
     d_cursorReadouts->setTopLeftStartingPoint(QPoint(8, 8));
     d_cursorReadouts->setTimeReadoutVisible(false);
     d_cursorReadouts->setVoltageReadoutVisible(false);
 
     /* Update Cursor Readouts */
-    onHCursor1Moved(d_hBar1->plotCoord().y());
-    onHCursor2Moved(d_hBar2->plotCoord().y());
-    onVCursor1Moved(d_vBar1->plotCoord().x());
-    onVCursor2Moved(d_vBar2->plotCoord().x());
 
     connect(d_hBar1, SIGNAL(positionChanged(double)),
             SLOT(onHCursor1Moved(double)));
@@ -817,8 +783,64 @@ void DisplayPlot::setupReadouts() {
             SLOT(onVCursor2Moved(double)));
 }
 
+void DisplayPlot::onVertCursorHandle1Changed(int value)
+{
+    if (vertCursorsLocked) {
+        int position2 = value - (pixelPosHandleVert1 - pixelPosHandleVert2);
+        pixelPosHandleVert2 = position2;
+        d_hBar2->setPixelPosition(position2);
+    }
+    pixelPosHandleVert1 = value;
 
-QWidget * DisplayPlot::bottomHandlesArea()
+    d_hBar1->setPixelPosition(value);
+}
+
+void DisplayPlot::onVertCursorHandle2Changed(int value)
+{
+    if (vertCursorsLocked) {
+        int position1 = value + (pixelPosHandleVert1 - pixelPosHandleVert2);
+        pixelPosHandleVert1 = position1;
+        d_hBar1->setPixelPosition(position1);
+    }
+    pixelPosHandleVert2 = value;
+    d_hBar2->setPixelPosition(value);
+}
+
+
+void DisplayPlot::onHorizCursorHandle1Changed(int value)
+{
+    if (horizCursorsLocked) {
+        int position2 = value - (pixelPosHandleHoriz1 - pixelPosHandleHoriz2);
+        pixelPosHandleHoriz2 = position2;
+        d_vBar2->setPixelPosition(position2);
+    }
+    pixelPosHandleHoriz1 = value;
+    d_vBar1->setPixelPosition(value);
+}
+
+void DisplayPlot::onHorizCursorHandle2Changed(int value)
+{
+    if (horizCursorsLocked) {
+        int position1 = value + (pixelPosHandleHoriz1 - pixelPosHandleHoriz2);
+        pixelPosHandleHoriz1 = position1;
+        d_vBar1->setPixelPosition(position1);
+    }
+    pixelPosHandleHoriz2 = value;
+    d_vBar2->setPixelPosition(value);
+}
+
+VertBar* DisplayPlot::vBar1()
+{
+    return d_vBar1;
+}
+
+VertBar* DisplayPlot::vBar2()
+{
+    return d_vBar2;
+}
+
+
+HorizHandlesArea* DisplayPlot::bottomHandlesArea()
 {
     return d_bottomHandlesArea;
 }
@@ -855,6 +877,7 @@ struct cursorReadoutsText DisplayPlot::allCursorReadouts() const
     return d_cursorReadoutsText;
 }
 
+
 void DisplayPlot::onVCursor1Moved(double value)
 {
     QString text;
@@ -886,6 +909,7 @@ void DisplayPlot::onVCursor2Moved(double value)
 
     Q_EMIT cursorReadoutsChanged(d_cursorReadoutsText);
 }
+
 
 void DisplayPlot::onHCursor1Moved(double value)
 {
@@ -940,6 +964,46 @@ void DisplayPlot::setVertCursorsEnabled(bool en)
     }
 }
 
+void DisplayPlot::toggleCursors(bool en)
+{
+    if (d_cursorsEnabled != en) {
+        if (!d_cursorsCentered) {
+            d_cursorsCentered=true;
+            d_vBar1->setPixelPosition(canvas()->width()/2);
+            d_vBar2->setPixelPosition(canvas()->width()/2);
+        }
+
+        d_cursorsEnabled = en;
+        d_vBar1->setVisible(en);
+        d_vBar2->setVisible(en);
+
+        if(d_vertCursorsHandleEnabled)
+        {
+            d_hCursorHandle1->setVisible(en);
+            d_hCursorHandle2->setVisible(en);
+        }
+
+        d_cursorReadouts->setTimeReadoutVisible(en);
+        d_cursorReadouts->setVoltageReadoutVisible(en);
+
+        if (en) {
+            onVCursor1Moved(d_vBar1->plotCoord().x());
+            onVCursor2Moved(d_vBar2->plotCoord().x());
+        } else {
+            markerIntersection1->detach();
+            markerIntersection2->detach();
+            replot();
+        }
+    }
+}
+
+void DisplayPlot::setVertCursorsHandleEnabled(bool en)
+{
+    d_vertCursorsHandleEnabled = en;
+    //d_bottomHandlesArea->setMinimumHeight(0);
+    //d_rightHandlesArea->setMinimumWidth(0);
+}
+
 bool DisplayPlot::vertCursorsEnabled()
 {
     return d_vertCursorsEnabled;
@@ -968,9 +1032,9 @@ void DisplayPlot::setCursorReadoutsVisible(bool en)
     if (d_cursorReadoutsVisible != en) {
         d_cursorReadoutsVisible = en;
         d_cursorReadouts->setVoltageReadoutVisible(en &&
-            d_vertCursorsEnabled);
+            d_vertCursorsEnabled );
         d_cursorReadouts->setTimeReadoutVisible(en &&
-            d_horizCursorsEnabled);
+            d_horizCursorsEnabled );
     }
 }
 
@@ -1975,7 +2039,7 @@ void DisplayPlot::bottomHorizAxisInit()
 {
 	horizAxis = new PlotAxisConfiguration(QwtPlot::xBottom, 0, this);
 	horizAxis->setMouseGesturesEnabled(d_mouseGesturesEnabled);
-	configureAxis(QwtPlot::xBottom, 0);
+    configureAxis(QwtPlot::xBottom, 0);
 	connect(axisWidget(horizAxis->axis()), SIGNAL(scaleDivChanged()),
 		      this, SLOT(_onXbottomAxisWidgetScaleDivChanged()));
 }
