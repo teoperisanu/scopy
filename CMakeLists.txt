@@ -22,6 +22,8 @@ project(scopy LANGUAGES CXX VERSION 1.1.2)
 
 set(Python_ADDITIONAL_VERSIONS 3)
 FIND_PACKAGE(PythonInterp REQUIRED)
+FIND_PACKAGE(glog 0.3.5 REQUIRED)
+
 set(PYTHON_VERSION python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
 
 # Get the GIT hash of the latest commit
@@ -312,6 +314,7 @@ target_link_libraries(${PROJECT_NAME} LINK_PRIVATE
 		${SIGCPP_LIBRARIES}
 		${GLIB_LIBRARIES}
 		${M2K_LIBRARIES}
+		glog::glog
 )
 
 if (NOT WIN32)

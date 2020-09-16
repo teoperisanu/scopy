@@ -19,7 +19,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#define LOG4CPP_FIX_ERROR_COLLISION 1
 #include "logic_analyzer.h"
 
 #include "ui_logic_analyzer.h"
@@ -47,8 +47,6 @@
 
 #include "filter.hpp"
 
-#include <libm2k/m2kexceptions.hpp>
-#include "scopyExceptionHandler.h"
 
 #include "osc_export_settings.h"
 #include "filemanager.h"
@@ -60,6 +58,8 @@
 #include <gnuradio/blocks/head.h>
 
 #include <m2k/analog_in_source.h>
+#include <libm2k/m2kexceptions.hpp>
+#include "scopyExceptionHandler.h"
 
 
 using namespace adiscope;

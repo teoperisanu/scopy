@@ -9,7 +9,7 @@
 namespace adiscope {
 class SaveRestoreToolSettings
 {
-	Q_DISABLE_COPY_MOVE(SaveRestoreToolSettings)
+	//Q_DISABLE_COPY_MOVE(SaveRestoreToolSettings)
 public:
 	SaveRestoreToolSettings(Tool *tool);
 	~SaveRestoreToolSettings();
