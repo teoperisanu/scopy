@@ -123,7 +123,7 @@ TriggerSettings::TriggerSettings(M2kAnalogIn* libm2k_adc,
 		SLOT(onSpinboxTriggerHystChanged(double)));
 
 	connect(ui->btnTrigger, SIGNAL(clicked()), this,
-	        SLOT(autoTriggerEnable()));
+	        SLOT(resetTrigger()));
 
 	// Default GUI settings
 	ui->cmb_source->setCurrentIndex(0);
@@ -422,22 +422,60 @@ void TriggerSettings::on_cmb_analog_extern_currentIndexChanged(int index)
 
 void TriggerSettings::autoTriggerDisable()
 {
-	if (!ui->btnTrigger->isChecked()) {
-		writeHwMode(libm2k::ALWAYS);
-		temporarily_disabled = true;
-	}
+        std::cout << "!!!!!! BEFORE autoTriggerDisable\n";
+        //ui->btnTrigger->setEnabled(false);
+        if (!ui->btnTrigger->isChecked()) {
+                //ui->btnTrigger->blockSignals(true);
+                std::cout << "!!!!!! autoTriggerDisable\n";
+                std::cout << "trigger_auto_mode=" << trigger_auto_mode << std::endl;
+
+                writeHwMode(libm2k::ALWAYS);
+                temporarily_disabled = true;
+                //ui->btnTrigger->blockSignals(false);
+
+        }
+        //ui->btnTrigger->setEnabled(true);
+
 }
 
 void TriggerSettings::autoTriggerEnable()
 {
-	if (!ui->btnTrigger->isChecked()) {
-		if (temporarily_disabled) {
-			writeHwMode(determineTriggerMode(ui->intern_en->isChecked(),
+        std::cout << "!!!!!! BEFORE autoTriggerEnable\n";
+
+        if (!ui->btnTrigger->isChecked()) {
+                std::cout << "!!!!!! autoTriggerEnable\n";
+
+                if (temporarily_disabled) {
+                       // ui->btnTrigger->blockSignals(true);
+
+                        std::cout << "!!!!!! temporarily_disabled\n";
+                        writeHwMode(determineTriggerMode(ui->intern_en->isChecked(),
 							 ui->extern_en->isChecked()));
 
 			temporarily_disabled = false;
-		}
+                       // ui->btnTrigger->blockSignals(false);
+
+                }
 	}
+}
+
+void TriggerSettings::resetTrigger()
+{
+        if (!ui->btnTrigger->isChecked()) {
+                std::cout << "!!!!!! autoTriggerEnable\n";
+
+                if (temporarily_disabled) {
+                        // ui->btnTrigger->blockSignals(true);
+
+                        std::cout << "!!!!!! temporarily_disabled\n";
+                        writeHwMode(determineTriggerMode(ui->intern_en->isChecked(),
+                                                         ui->extern_en->isChecked()));
+
+                        temporarily_disabled = false;
+                        // ui->btnTrigger->blockSignals(false);
+
+                }
+        }
 }
 
 bool TriggerSettings::triggerIsArmed() const
@@ -636,6 +674,7 @@ void TriggerSettings::writeHwMode(int mode)
 {
 	if (adc_running) {
 		try {
+		        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!! " << mode << std::endl;
 			m_trigger->setAnalogMode(currentChannel(),
 				static_cast<libm2k::M2K_TRIGGER_MODE>(mode));
 		}

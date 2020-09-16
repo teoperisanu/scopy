@@ -97,6 +97,7 @@ namespace adiscope {
 		void setTriggerHystStep(int chn, double step);
 		void autoTriggerDisable();
 		void autoTriggerEnable();
+		void resetTrigger();
 		void updateHwVoltLevels(int chnIdx);
 		void setAdcRunningState(bool on);
 		void onSpinboxTriggerLevelChanged(double);
