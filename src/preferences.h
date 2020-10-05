@@ -138,6 +138,9 @@ public:
 	void requestRestart();
 	void setColorEditor(ScopyColorEditor *colorEditor);
 
+	bool getLogging_enabled() const;
+	void setLogging_enabled(bool value);
+
 Q_SIGNALS:
 
 	void notify();
@@ -186,6 +189,7 @@ private:
 	bool m_debug_messages_active;
 	bool m_attemptTempLutCalib;
 	bool m_skipCalIfCalibrated;
+	bool m_logging_enabled;
 
 	Preferences_API *pref_api;
 
@@ -224,6 +228,8 @@ class Preferences_API : public ApiObject
 	Q_PROPERTY(bool first_application_run READ getFirstApplicationRun WRITE setFirstApplicationRun)
 	Q_PROPERTY(QString currentStylesheet READ getCurrentStylesheet WRITE setCurrentStylesheet)
 	Q_PROPERTY(QStringList userStylesheets READ getUserStylesheets WRITE setUserStylesheets)
+	Q_PROPERTY(bool logging_enabled READ getLoggingEnabled WRITE setLoggingEnabled)
+
 
 public:
 
@@ -311,6 +317,9 @@ public:
 
 	QStringList getUserStylesheets() const;
 	void setUserStylesheets(const QStringList &userStylesheets);
+
+	bool getLoggingEnabled() const;
+	void setLoggingEnabled(const bool &enabled);
 
 private:
 	Preferences *preferencePanel;
