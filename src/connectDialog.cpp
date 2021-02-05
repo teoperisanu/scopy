@@ -31,7 +31,7 @@
 using namespace adiscope;
 
 ConnectDialog::ConnectDialog(QWidget *widget) : QWidget(widget),
-	ui(new Ui::Connect), connected(false)
+	ui(new Ui::Connect), connected(false), enableDemo(false)
 {
 	ui->setupUi(this);
 	ui->connectBtn->setText(tr("Connect"));
@@ -39,6 +39,7 @@ ConnectDialog::ConnectDialog(QWidget *widget) : QWidget(widget),
 	ui->connectBtn->setDisabled(true);
 
 	connect(ui->connectBtn, SIGNAL(clicked()), this, SLOT(btnClicked()));
+	connect(ui->enableDemoBtn, SIGNAL(clicked()), this, SLOT(enableDemoBtn()));
 	connect(ui->hostname, SIGNAL(returnPressed()),
 	        this, SLOT(btnClicked()));
 	connect(ui->hostname, SIGNAL(textChanged(const QString&)),
@@ -50,6 +51,10 @@ ConnectDialog::ConnectDialog(QWidget *widget) : QWidget(widget),
 	setDynamicProperty(ui->hostname, "invalid", false);
 	setDynamicProperty(ui->hostname, "valid", false);
 	ui->infoSection->hide();
+
+	ui->demoDevicesComboBox->addItem("ADALM2000");
+	ui->demoDevicesComboBox->setDisabled(true);
+	process = std::unique_ptr<QProcess>(new QProcess(this));
 }
 
 ConnectDialog::~ConnectDialog()
@@ -86,8 +91,52 @@ void ConnectDialog::btnClicked()
 		QString new_uri = URIstringParser(ui->hostname->text());
 		Q_EMIT newContext(new_uri);
 	} else {
+		if (enableDemo) {
+			// iio-emu found in system
+			QString program = "iio-emu";
+			QStringList arguments;
+			arguments.append(ui->demoDevicesComboBox->currentText());
+			process->setProgram(program);
+			process->setArguments(arguments);
+			process->start();
+			auto started = process->waitForStarted();
+			if (!started) {
+				// retry to start the process
+				program = "iio-emu/iio-emu";
+				process->setProgram(program);
+				process->start();
+				started = process->waitForStarted();
+				if (!started) {
+					qDebug() << "Process failed to start";
+				}
+			}
+			if (started) {
+				qDebug() << "Process started successfully";
+				QThread::msleep(100);
+			}
+		}
 		validateInput();
 	}
+}
+
+void ConnectDialog::enableDemoBtn()
+{
+	if (!enableDemo) {
+		ui->enableDemoBtn->setChecked(true);
+		ui->enableDemoBtn->setText("Disable Demo");
+		ui->hostname->setText("127.0.0.1");
+		ui->demoDevicesComboBox->setDisabled(false);
+
+		enableDemo = true;
+	} else {
+		ui->enableDemoBtn->setChecked(false);
+		ui->enableDemoBtn->setText("Enable Demo");
+		ui->hostname->setText("");
+		ui->demoDevicesComboBox->setDisabled(true);
+
+		enableDemo = false;
+	}
+
 }
 
 void ConnectDialog::discardSettings()
