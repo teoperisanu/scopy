@@ -1,12 +1,12 @@
 #!/usr/bin/bash.exe
 
 SCOPY_MINGW_BUILD_DEPS_FORK=analogdevicesinc
-SCOPY_MINGW_BUILD_DEPS_BRANCH=master
+SCOPY_MINGW_BUILD_DEPS_BRANCH=libm2k-logging
 
 echo "Download and install pre-compiled libraries ... "
-wget "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps-pacman.txt?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/scopy-$MINGW_VERSION-build-deps-pacman.txt
-wget "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-$MINGW_VERSION-build-deps.tar.xz?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/scopy-$MINGW_VERSION-build-deps.tar.xz
-wget "https://ci.appveyor.com/api/projects/$SCOPY_MINGW_BUILD_DEPS_FORK/scopy-mingw-build-deps/artifacts/scopy-mingw-build-status?branch=$SCOPY_MINGW_BUILD_DEPS_BRANCH&job=Environment: MINGW_VERSION=$MINGW_VERSION, ARCH=$ARCH" -O /tmp/scopy-mingw-build-status
+wget https://ci.appveyor.com/api/buildjobs/a50y6cau9hl875xf/artifacts/scopy-mingw64-build-deps-pacman.txt -O /tmp/scopy-$MINGW_VERSION-build-deps-pacman.txt
+wget https://ci.appveyor.com/api/buildjobs/a50y6cau9hl875xf/artifacts/scopy-mingw64-build-deps.tar.xz -O /tmp/scopy-$MINGW_VERSION-build-deps.tar.xz
+wget https://ci.appveyor.com/api/buildjobs/a50y6cau9hl875xf/artifacts/scopy-mingw-build-status -O /tmp/scopy-mingw-build-status
 cd /c
 tar xJf /tmp/scopy-$MINGW_VERSION-build-deps.tar.xz
 
