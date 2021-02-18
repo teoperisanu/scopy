@@ -2,8 +2,18 @@
 set -e
 cd build
 
-## Handle libm2k paths
 mkdir -p ./Scopy.app/Contents/Frameworks
+
+## Handle iio-emu + libtinyiiod
+sudo cp ./iio-emu/iio-emu ./Scopy.app/Contents/MacOS/
+tinypath=/usr/local/lib/tinyiiod.dylib
+tinyrpath="$(otool -D ${tinypath} | grep @rpath)"
+tinyid=${tinyrpath#"@rpath/"}
+sudo cp /usr/local/lib/tinyiiod.* ./Scopy.app/Contents/Frameworks
+sudo install_name_tool -id @executable_path/../Frameworks/${tinyid} ./Scopy.app/Contents/Frameworks/${tinyid}
+sudo install_name_tool -change ${tinyrpath} @executable_path/../Frameworks/${tinyid} ./Scopy.app/Contents/MacOS/iio-emu
+
+## Handle libm2k paths
 m2kpath=/usr/local/lib/libm2k.dylib
 m2krpath="$(otool -D ${m2kpath} | grep @rpath)"
 m2kid=${m2krpath#"@rpath/"}
@@ -85,6 +95,7 @@ sudo /usr/local/opt/qt/bin/macdeployqt Scopy.app
 
 curl -o /tmp/macdeployqtfix.py https://raw.githubusercontent.com/aurelien-rainone/macdeployqtfix/master/macdeployqtfix.py
 sudo python /tmp/macdeployqtfix.py ./Scopy.app/Contents/MacOS/Scopy /usr/local/opt/qt/
+sudo python /tmp/macdeployqtfix.py /Scopy.app/Contents/MacOS/iio-emu /usr/local/opt/qt/
 sudo python /tmp/macdeployqtfix.py ./Scopy.app/Contents/MacOS/Scopy ./Scopy.app/Contents/Frameworks/
 
 sudo /usr/local/opt/qt/bin/macdeployqt Scopy.app -dmg
