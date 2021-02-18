@@ -20,7 +20,7 @@ RUN apt-get clean -y && apt-get autoclean -y
 
 ARG REPO_LINK=https://github.com/analogdevicesinc/scopy-flatpak
 ARG REPO_LOCAL=/home/docker/scopy-flatpak
-ARG REPO_BRANCH=master
+ARG REPO_BRANCH=submodule_fix
 
 RUN git clone --recurse-submodules "$REPO_LINK" -b "$REPO_BRANCH" "$REPO_LOCAL" 2> /dev/null || (cd "$REPO_LOCAL"; git pull)
 
