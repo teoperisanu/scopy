@@ -92,27 +92,33 @@ void ConnectDialog::btnClicked()
 		Q_EMIT newContext(new_uri);
 	} else {
 		if (enableDemo) {
+			//QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+			//env.insert("LD_LIBRARY_PATH", "/app/lib"); // Add an environment variable
 			// iio-emu found in system
-			QString program = "iio-emu";
+			QString dirPath = QCoreApplication::applicationDirPath();
+			QString program = dirPath + "/iio-emu";
 			QStringList arguments;
 			arguments.append(ui->demoDevicesComboBox->currentText());
 			process->setProgram(program);
 			process->setArguments(arguments);
+			//process->setProcessEnvironment(env);
 			process->start();
 			auto started = process->waitForStarted();
 			if (!started) {
 				// retry to start the process
-				program = "iio-emu/iio-emu";
+				program = dirPath + "/iio-emu/iio-emu";
 				process->setProgram(program);
 				process->start();
 				started = process->waitForStarted();
 				if (!started) {
+					std::cout << "FAILED TO RUN\n";
 					qDebug() << "Process failed to start";
 				}
 			}
 			if (started) {
+				std::cout << "RUN\n";
 				qDebug() << "Process started successfully";
-				QThread::msleep(100);
+				QThread::msleep(1000);
 			}
 		}
 		validateInput();
